@@ -1,3 +1,5 @@
+import math
+
 from aiohttp import web
 
 
@@ -12,8 +14,8 @@ class Paginator:
         self.page = page
         self.total = await query.count()
         self.pages = math.ceil(self.total / page_size)
-        skips = page_size * (self.page - 1)
-        self.data = await query.skip(skips).limit(page_size).to_list()
+        skips = self.page_size * (self.page - 1)
+        self.data = await query.skip(skips).limit(self.page_size).to_list()
         if self.serializer:
             self.data = [self.serializer(**rec).dict() for rec in self.data]
         return self.page_data(self.data)
