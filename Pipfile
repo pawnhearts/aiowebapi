@@ -10,7 +10,6 @@ aiohttp = "*"
 aiomongo = "*"
 aiohttp-autoreload = "*"
 proxy-tools = "*"
-dotenv = "*"
 python-dotenv = "*"
 pydantic = "*"
 
