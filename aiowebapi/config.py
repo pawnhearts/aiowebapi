@@ -31,6 +31,8 @@ class BaseConfig:
         cls.middlewares = []
         for middleware_module in map(importlib.import_module, cls.MIDDLEWARES):
             cls.middlewares.extend(middleware_module.middlewares)
+        db_backend = importlib.import_module('aiowebapi.db.backends.{}'.format(cls.DATABASES['default'].split(':', 1)[0]))
+        cls.db = db_backend.Database(cls.DATABASES['default'])
         cls._configured = True
 
 

@@ -17,7 +17,12 @@ class WebApiApplication(web.Application):
         except ModuleNotFoundError:
             pass
 
+        app.on_startup.append(self.init)
         for singal_name in ('startup', 'response_prepare', 'shutdown', 'cleanup`'):
             if hasattr(self, singal_name):
                 getattr(app, f'on_{singal_name}').append(getattr(self, singal_name))
+
+    async def init(self):
+        from aiowebapi.config import config
+        await config.db.init()
 

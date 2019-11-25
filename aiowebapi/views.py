@@ -4,7 +4,6 @@ from aiohttp import web
 from aiohttp.web_exceptions import HTTPMethodNotAllowed
 
 from aiowebapi.config import config
-from aiowebapi.db import Database
 from aiowebapi.pagination import Paginator
 from aiowebapi.utils import get_query_schema, dumps
 
@@ -28,7 +27,6 @@ def handler_decorator(func):
         if self.filter_class:
             self.filter = self.filter_class(**request.query)
         validated_query = func.query_schema(**query).dict()
-        print(func)
         result = await func(request, **request.match_info, **validated_query)
         return web.json_response(result, dumps=dumps)
     return wrapper
@@ -39,15 +37,13 @@ class ApiView(metaclass=ApiViewMeta):
     filter_class = None
     paginator_class = Paginator
     serializer_class = None
-    collection = None
+    table = None
     filter = None
     page_size = config.DEFAULT_PAGE_SIZE
     path = '/'
     id_field: int = 'id'
 
     def __init__(self):
-        if self.collection:
-            self.collection = Database[self.collection]
         if self.paginator_class:
             self.paginator = self.paginator_class(self.page_size, self.serializer_class)
         else:
@@ -56,14 +52,12 @@ class ApiView(metaclass=ApiViewMeta):
             self.path = '{}/'.format(self.path.strip())
 
     def query(self, q=None):
-        col = self.collection
         params = {}
         if self.filter:
             params.update(self.filter.query())
         if q:
             params.update(q)
-        print(params)
-        return col.find(params)
+        return config.db.query(self.table).filter(**params)
 
     async def paginate(self, query=None):
         if query is None:
@@ -112,5 +106,4 @@ class ApiView(metaclass=ApiViewMeta):
 
     async def get_object(self, pk):
         cast = self.__annotations__['id_field']
-        obj = await self.query({self.id_field: cast(pk)}).limit(1).to_list()
-        return obj[0] if obj else None
+        return await config.db.query(self.table).get(**{self.id_field: cast(pk)})

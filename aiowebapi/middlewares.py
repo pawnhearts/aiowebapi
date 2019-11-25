@@ -17,5 +17,4 @@ async def webapi_error_middleware(request, handler):
     return web.json_response({'error': message}, status=status)
 
 
-middlewares = []#webapi_error_middleware]
-
+middlewares = [webapi_error_middleware]
